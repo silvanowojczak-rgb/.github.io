@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Truther Dashboard</title>
+<style>
+body{
+  margin:0;
+  background:#020617;
+  font-family:Arial;
+  color:#e2e8f0;
+}
+.container{
+  padding:20px;
+}
+.card{
+  background:#0f172a;
+  border-radius:12px;
+  padding:15px;
+  box-shadow:0 10px 30px rgba(0,0,0,.5);
+  margin-bottom:15px;
+}
+h1{
+  font-size:18px;
+  color:#38bdf8;
+}
+.status{
+  font-size:12px;
+  color:#94a3b8;
+}
+button{
+  background:#38bdf8;
+  border:none;
+  padding:8px 12px;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:bold;
+}
+button:hover{
+  background:#0ea5e9;
+}
+input{
+  padding:6px;
+  margin-right:5px;
+  border-radius:6px;
+  border:1px solid #334155;
+  background:#020617;
+  color:#fff;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
+td{
+  padding:6px;
+  border-bottom:1px solid #1e293b;
+  font-size:12px;
+}
+.total{
+  font-size:16px;
+  color:#22c55e;
+  margin-top:10px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="card">
+    <h1>📊 Truther Dashboard</h1>
+    <div class="status" id="status">Aguardando token...</div>
+  </div>
+
+  <div class="card">
+    <input id="d1" placeholder="Data início">
+    <input id="d2" placeholder="Data fim">
+    <button onclick="buscar()">Buscar</button>
+  </div>
+
+  <div class="card">
+    <div id="total" class="total"></div>
+    <table id="tabela"></table>
+  </div>
+
+</div>
+
+<script>
+let TOKEN = null;
+
+// recebe token
+window.addEventListener("message", (event)=>{
+  if(event.data.token){
+    TOKEN = event.data.token;
+    document.getElementById("status").innerText = "Token recebido ✔";
+  }
+});
+
+function formatDate(d){
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+
+// busca API
+async function buscar(){
+  if(!TOKEN){
+    alert("Token não recebido ainda");
+    return;
+  }
+
+  let now = new Date();
+  let past = new Date();
+  past.setDate(now.getDate()-10);
+
+  let d1 = document.getElementById("d1").value || formatDate(past)+"T00:00";
+  let d2 = document.getElementById("d2").value || formatDate(now)+"T23:59";
+
+  let tabela = document.getElementById("tabela");
+  let totalEl = document.getElementById("total");
+
+  tabela.innerHTML = "<tr><td>🔄 Carregando...</td></tr>";
+  totalEl.innerHTML = "";
+
+  try{
+    let res = await fetch("https://live.truther.to/transactions/get-extract",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization": TOKEN
+      },
+      body: JSON.stringify({
+        token:"USDT",
+        tokenSymbol:"USDT",
+        flow:"IN",
+        type:"blockchain",
+        dateFrom:d1,
+        dateTo:d2
+      })
+    });
+
+    if(res.status !== 200){
+      tabela.innerHTML = "<tr><td>❌ Erro HTTP "+res.status+"</td></tr>";
+      return;
+    }
+
+    let data = await res.json();
+
+    if(!data || !data.res || data.res.length === 0){
+      tabela.innerHTML = "<tr><td>⚠️ Nenhum resultado</td></tr>";
+      return;
+    }
+
+    let total = 0;
+    tabela.innerHTML = "";
+
+    data.res.forEach(r=>{
+      total += Number(r.amount || 0);
+
+      let tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${r.amount}</td>
+        <td>${r.status}</td>
+        <td>${r.createdAt}</td>
+      `;
+      tabela.appendChild(tr);
+    });
+
+    totalEl.innerHTML = "💰 Total: " + total.toFixed(2);
+
+  }catch(e){
+    tabela.innerHTML = "<tr><td>❌ Erro na requisição</td></tr>";
+    console.error(e);
+  }
+}
+</script>
+
+</body>
+</html>
