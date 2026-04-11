@@ -138,10 +138,10 @@ async function buscar(){
       })
     });
 
-    if(res.status !== 200){
+    /*if(res.status !== 200 ){
       tabela.innerHTML = "<tr><td>❌ Erro HTTP "+res.status+"</td></tr>";
       return;
-    }
+    }*/
 
     let data = await res.json();
 
