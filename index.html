@@ -81,7 +81,18 @@ td{
 
   <div class="card">
     <div id="total" class="total"></div>
-    <table id="tabela"></table>
+    <table id="tabela">
+      <tr>
+      <th>ID</th>
+      <th>From</th>
+      <th>To</th>
+      <th>Symbol</th>
+      <th>Flow</th>
+      <th>Amount</th>
+      <th>Status</th>
+      <th>Created At</th>
+    </tr>
+    </table>
   </div>
 
 </div>
@@ -151,8 +162,8 @@ async function buscar(){
     }
 
     let total = 0;
-    tabela.innerHTML = "";
-
+    //tabela.innerHTML = "";
+    const tabela = document.querySelector("#tabela tbody");
     data.res.forEach(r=>{
       total += Number(r.amount || 0);
 
