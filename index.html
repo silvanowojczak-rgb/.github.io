@@ -126,7 +126,8 @@ async function buscar(){
   let d1 = document.getElementById("d1").value || formatDate(past)+"T00:00";
   let d2 = document.getElementById("d2").value || formatDate(now)+"T23:59";
 
-  let tabela = document.getElementById("tabela");
+  //let tabela = document.getElementById("tabela");
+  let tabela = document.querySelector("#tabela tbody");
   let totalEl = document.getElementById("total");
 
   tabela.innerHTML = "<tr><td>🔄 Carregando...</td></tr>";
@@ -163,7 +164,7 @@ async function buscar(){
 
     let total = 0;
     //tabela.innerHTML = "";
-    const tabela = document.querySelector("#tabela tbody");
+   
     data.res.forEach(r=>{
       total += Number(r.amount || 0);
 
